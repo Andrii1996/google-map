@@ -1,57 +1,102 @@
-import React from 'react';
-import { Map, GoogleApiWrapper, Marker, InfoWindow } from 'google-maps-react';
-import CurrentLocation from '../components/Map';
+import React, { useState } from 'react';
+import { GoogleMap, LoadScript, Marker, StandaloneSearchBox } from '@react-google-maps/api';
 
-const mapStyles = {
-  width: "900px",
-  height: "500px",
+const containerStyle = {
+  width: '900px',
+  height: '600px'
 };
 
-export class Maps extends React.Component {
-  state = {
-    showingInfoWindow: false,
-    activeMarker: {},  
-    selectedPlace: {}
-  };
+const center = {
+  lat: 0,
+  lng: 0
+};
 
-  onMarkerClick = (props, marker, e) =>
-    this.setState({
-      selectedPlace: props,
-      activeMarker: marker,
-      showingInfoWindow: true
-    });
+const refs = {};
 
-  onClose = props => {
-    if (this.state.showingInfoWindow) {
-      this.setState({
-        showingInfoWindow: false,
-        activeMarker: null
-      });
-    }
-  };
+function MyComponents() {
+  const [marker, setMarker] = useState(center);
+  const [libraries] = useState(['places']);
+  const [address, setAddress] = useState('');
 
-  render() {
-
-    return (
-      <CurrentLocation
-        centerAroundCurrentLocation
-        google={this.props.google}
-      >
-        <Marker onClick={this.onMarkerClick} name={'Current Location'} />
-        <InfoWindow
-          marker={this.state.activeMarker}
-          visible={this.state.showingInfoWindow}
-          onClose={this.onClose}
-        >
-          <div>
-            <h4>{this.state.selectedPlace.name}</h4>
-          </div>
-        </InfoWindow>
-      </CurrentLocation>
-    );
+  const handleCoordsChange = (e) => {
+    console.log('event', e);
+    const coords = {
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng(),
+      }
+      setMarker(coords);
   }
+
+  const onLoadMarker = e => {
+    console.log('marker: ', marker)
+
+  }
+
+ const onLoad = (ref) => refs.searchBox = ref
+
+ const onPlacesChanged = () => {
+  const place = refs.searchBox.getPlaces();
+  const coords = {
+    lat: place[0].geometry.location.lat(),
+    lng: place[0].geometry.location.lng(),
+  }
+  setMarker(coords);
+  setAddress(place[0].formatted_address);
+
+ }
+
+
+  return (
+    <>
+      <>
+      {address}
+      </>
+    <LoadScript
+      googleMapsApiKey="AIzaSyCGsyrM6XN6-rpZ26F7ZyXrmkzGeInQaEk"
+      libraries={libraries}
+    >
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={center}
+        zoom={10}
+        onClick={handleCoordsChange}
+        onLoad={onLoad}
+      >
+          <Marker
+          onLoad={onLoadMarker}
+          position={marker}
+          draggable
+          onDragEnd={handleCoordsChange}
+          onClick={(e => console.log('on marker click - ', marker))}
+        />
+        <StandaloneSearchBox
+          onLoad={onLoad}
+          onPlacesChanged={onPlacesChanged}
+        >
+          <input
+            type="text"
+            placeholder="Customized your placeholder"
+            style={{
+              boxSizing: `border-box`,
+              border: `1px solid transparent`,
+              width: `240px`,
+              height: `32px`,
+              padding: `0 12px`,
+              borderRadius: `3px`,
+              boxShadow: `0 2px 6px rgba(0, 0, 0, 0.3)`,
+              fontSize: `14px`,
+              outline: `none`,
+              textOverflow: `ellipses`,
+              position: "absolute",
+              left: "50%",
+              marginLeft: "-120px"
+            }}
+          />
+        </StandaloneSearchBox>
+      </GoogleMap>
+    </LoadScript>
+    </>
+  )
 }
 
-export default GoogleApiWrapper({
-  apiKey: "AIzaSyCGsyrM6XN6-rpZ26F7ZyXrmkzGeInQaEk",
-})(Maps);
+export default MyComponents;

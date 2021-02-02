@@ -1,8 +1,8 @@
 import React from "react";
-import Maps from "./helpers/Maps";
+import MyComponent from "./helpers/Maps";
 
 function App() {
-  return <Maps />;
+  return <MyComponent />;
 }
 
 export default App;
